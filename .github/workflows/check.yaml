@@ -1,0 +1,37 @@
+name: Check
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt-get install -y libssl-dev libjson-c-dev
+
+    - name: Generate CA.pem file for testing
+      run: |
+        openssl genpkey -algorithm RSA -out ca.key -aes256 -pass pass:testpass
+        openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -subj "/C=US/ST=CA/O=Test/CN=Test CA" -passin pass:testpass
+        cat ca.crt ca.key > CA.pem
+
+    - name: Create input file for testing
+      run: echo "8.8.8.8:443\n1.1.1.1" > input.txt
+
+    - name: Build
+      run: make
+
+    - name: Run the program
+      run: ./ssl input.txt CA.pem
+
+    - name: Check output file
+      run: |
+        if [ ! -f output.json ]; then
+          echo "Output file not found!"
+          exit 1
+        fi
+        cat output.json
