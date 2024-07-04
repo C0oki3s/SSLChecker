@@ -78,5 +78,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contributing
 Please feel free to submit pull requests and issues. Any contributions, large or small, major features, bug fixes, or documentation improvements are welcomed.
 
+If you appreciate my efforts, I would greatly appreciate your support. Your encouragement keeps me motivated to explore more in cybersecurity and continue developing open-source tools. Thank you for your support!
+
+<a href="https://buymeacoffee.com/c0oki3s" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 
