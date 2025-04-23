@@ -20,7 +20,16 @@ OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
 # The default rule
-all: $(TARGET)
+all: check-libs $(TARGET)
+
+# Rule to check for required libraries
+check-libs:
+	@echo "Checking for required libraries..."
+	@pkg-config --exists libssl json-c libssh2 || { \
+		echo "Error: Missing required libraries. Run 'make install' to install them."; \
+		exit 1; \
+	}
+	@echo "All required libraries are present."
 
 # Rule to link the object files into the final executable
 $(TARGET): $(OBJS)
@@ -38,16 +47,21 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(TARGET) $(OBJS) $(DEPS)
 
-# Rule to install the necessary libraries
+# Rule to install the necessary libraries (Debian/Ubuntu)
 install:
-	sudo apt-get update
-	sudo apt-get install -y libssl-dev libjson-c-dev libssh2-1-dev
+	@echo "Installing required libraries for Debian/Ubuntu..."
+	@sudo apt-get update || { echo "Failed to update package lists"; exit 1; }
+	@sudo apt-get install -y libssl-dev libjson-c-dev libssh2-1-dev pkg-config || { echo "Failed to install libraries"; exit 1; }
+	@echo "Libraries installed successfully."
+	@echo "Note: For other systems, use the following:"
+	@echo "  CentOS/RHEL: sudo yum install -y openssl-devel json-c-devel libssh2-devel pkgconf"
+	@echo "  macOS (Homebrew): brew install openssl json-c libssh2 pkg-config"
 
 # Include dependency files
 -include $(DEPS)
 
 # Phony targets
-.PHONY: all clean install
+.PHONY: all clean install check-libs
 
 # Suppress command output unless V=1 is specified
 ifndef V
