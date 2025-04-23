@@ -11,7 +11,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <libssh2.h>
 
 json_object *json_array;
 pthread_mutex_t json_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -200,7 +199,6 @@ void check_security_issues(X509 *cert, json_object *jobj)
         }
     }
 
-    // ROCA placeholder
     json_object_object_add(issues, "ROCA", json_object_new_string("Potential ROCA vulnerability (requires external testing)"));
     json_object_object_add(issues, "Heartbleed", json_object_new_string("Not applicable"));
 
@@ -213,50 +211,6 @@ void check_revocation(X509 *cert, json_object *jobj)
     json_object *revocation = json_object_new_object();
     json_object_object_add(revocation, "Status", json_object_new_string("OCSP check not implemented"));
     json_object_object_add(jobj, "Revocation", revocation);
-}
-
-// SSH certificate retrieval
-int get_ssh_certificate(const char *hostname, int port, json_object *jobj)
-{
-    int rc = libssh2_init(0);
-    if (rc != 0)
-    {
-        fprintf(stderr, "libssh2 initialization failed: %d\n", rc);
-        return -1;
-    }
-
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in sin;
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(port);
-    inet_pton(AF_INET, hostname, &sin.sin_addr);
-
-    if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) != 0)
-    {
-        fprintf(stderr, "Failed to connect to %s:%d for SSH.\n", hostname, port);
-        close(sock);
-        libssh2_exit();
-        return -1;
-    }
-
-    LIBSSH2_SESSION *session = libssh2_session_init();
-    if (libssh2_session_handshake(session, sock))
-    {
-        fprintf(stderr, "SSH handshake failed.\n");
-        libssh2_session_free(session);
-        close(sock);
-        libssh2_exit();
-        return -1;
-    }
-
-    json_object *ssh_key = json_object_new_object();
-    json_object_object_add(ssh_key, "Type", json_object_new_string("SSH Key (Placeholder)"));
-    json_object_object_add(jobj, "SSHCertificate", ssh_key);
-
-    libssh2_session_free(session);
-    close(sock);
-    libssh2_exit();
-    return 0;
 }
 
 // Write JSON to file
@@ -389,11 +343,6 @@ void *thread_function(void *arg)
         json_object_object_add(jobj, "Error", json_object_new_string(connection_blocked ? "Connection blocked (possible IDP)" : "No certificate retrieved"));
     }
 
-    if (args->port == 22)
-    {
-        get_ssh_certificate(args->ip, args->port, jobj);
-    }
-
     append_to_json_array(jobj);
     free(args->ip);
     if (args->fqdn)
@@ -424,6 +373,7 @@ void parse_cidr(const char *cidr, void (*callback)(const char *, int, void *), v
         {
             char current_ip[INET6_ADDRSTRLEN];
             struct in6_addr current = addr;
+            // Simplified increment (not comprehensive)
             inet_ntop(AF_INET6, &current, current_ip, INET6_ADDRSTRLEN);
             callback(current_ip, 443, data);
         }

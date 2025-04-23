@@ -5,7 +5,7 @@ CC = gcc
 CFLAGS = -Wall -I/usr/include/json-c -g -O2
 
 # Define the flags for the linker
-LDFLAGS = -lssl -lcrypto -ljson-c -lssh2 -pthread
+LDFLAGS = -lssl -lcrypto -ljson-c -pthread
 
 # Define the target executable name
 TARGET = ssl
@@ -25,7 +25,7 @@ all: check-libs $(TARGET)
 # Rule to check for required libraries
 check-libs:
 	@echo "Checking for required libraries..."
-	@pkg-config --exists libssl json-c libssh2 || { \
+	@pkg-config --exists libssl json-c || { \
 		echo "Error: Missing required libraries. Run 'make install' to install them."; \
 		exit 1; \
 	}
@@ -51,11 +51,11 @@ clean:
 install:
 	@echo "Installing required libraries for Debian/Ubuntu..."
 	@sudo apt-get update || { echo "Failed to update package lists"; exit 1; }
-	@sudo apt-get install -y libssl-dev libjson-c-dev libssh2-1-dev pkg-config || { echo "Failed to install libraries"; exit 1; }
+	@sudo apt-get install -y libssl-dev libjson-c-dev pkg-config || { echo "Failed to install libraries"; exit 1; }
 	@echo "Libraries installed successfully."
 	@echo "Note: For other systems, use the following:"
-	@echo "  CentOS/RHEL: sudo yum install -y openssl-devel json-c-devel libssh2-devel pkgconf"
-	@echo "  macOS (Homebrew): brew install openssl json-c libssh2 pkg-config"
+	@echo "  CentOS/RHEL: sudo yum install -y openssl-devel json-c-devel pkgconf"
+	@echo "  macOS (Homebrew): brew install openssl json-c pkg-config"
 
 # Include dependency files
 -include $(DEPS)
